@@ -1,0 +1,54 @@
+{
+  "marketplaces": [
+    {
+      "name": "superpowers-marketplace",
+      "url": "https://github.com/obra/superpowers-marketplace.git",
+      "sha": "1ab7b8eeef707f21565471f11d3782fac3dd1c61"
+    },
+    {
+      "name": "ponytail",
+      "url": "https://github.com/DietrichGebert/ponytail.git",
+      "sha": "2ed6c52c9d7e5e56942508591085fd45dea277d3"
+    },
+    {
+      "name": "enix",
+      "url": "https://github.com/enixCode/plugins.git",
+      "sha": "5c984061b1968cf4766ee26dde4c8f0086592e24"
+    },
+    {
+      "name": "caveman",
+      "url": "https://github.com/JuliusBrussee/caveman.git",
+      "sha": "3b74643f4d910f496babd4e634b1ba7168816f14"
+    }
+  ],
+  "plugins": [
+    {
+      "name": "superpowers",
+      "marketplace": "superpowers-marketplace",
+      "version": "6.3.0",
+      "sha": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "url": "https://github.com/obra/superpowers.git"
+    },
+    {
+      "name": "ponytail",
+      "marketplace": "ponytail",
+      "version": "4.9.0",
+      "sha": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "url": "https://github.com/DietrichGebert/ponytail.git"
+    },
+    {
+      "name": "rtk-plugin",
+      "marketplace": "enix",
+      "version": "0.1.2",
+      "sha": "efa4ab0f6a17b182ecc9ad4631a1ee122f3c8053",
+      "url": "https://github.com/enixCode/rtk-plugin.git"
+    },
+    {
+      "name": "caveman",
+      "marketplace": "caveman",
+      "version": "3b74643f4d91",
+      "sha": "3b74643f4d910f496babd4e634b1ba7168816f14",
+      "url": "https://github.com/JuliusBrussee/caveman.git"
+    }
+  ]
+}

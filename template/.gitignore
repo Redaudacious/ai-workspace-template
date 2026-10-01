@@ -1,0 +1,4 @@
+# Each entry carries the reason and the recovery path, not just the path.
+# Whoever clones and finds an empty folder learns from here how to fill it.
+
+# <what exactly, how big> — <how it is rebuilt>

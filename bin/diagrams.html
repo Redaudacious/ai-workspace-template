@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>diagrams</title>
+<!--
+  Draws every Mermaid diagram in a markdown document and says which ones do not
+  draw. The repository root is served, with the "diagrams" configuration in
+  `.claude/launch.json`, then `bin/diagrams.html?doc=<path of the document>` is
+  opened.
+
+  A wrong diagram breaks nothing that `check-docs.py` checks: the code block is
+  skipped. On GitHub only a frame with "Unable to render" shows up.
+-->
+<h1 id="result">drawing…</h1>
+<div id="diagrams"></div>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({ startOnLoad: false });
+const doc = new URLSearchParams(location.search).get("doc");
+const text = await (await fetch("/" + doc)).text();
+const blocks = [...text.matchAll(/^```mermaid\n([\s\S]*?)^```/gm)].map(m => m[1]);
+const results = [];
+for (const [i, code] of blocks.entries()) {
+  try {
+    const { svg } = await mermaid.render(`d${i}`, code);
+    document.getElementById("diagrams").insertAdjacentHTML("beforeend", svg);
+    results.push(`${i + 1}: good`);
+  } catch (e) {
+    results.push(`${i + 1}: ERROR ${String(e.message || e).split("\n")[0]}`);
+  }
+}
+document.getElementById("result").textContent =
+  `${doc} · diagrams: ${blocks.length} · ${results.join(" · ") || "none"}`;
+</script>

@@ -1,0 +1,32 @@
+# Each project has its own repository. Here it would bring gigabytes and more nested
+# repositories, which git would silently add as unresolvable gitlinks.
+projects/
+
+# ── The personal layer ────────────────────────────────────────────────────
+#
+# This repository holds the FRAMEWORK, that is, what is valid on any machine it would be
+# cloned to. The records, the agent's memory, the house rules and the local workers
+# describe a human and their machines: on another machine they do not apply, and on a
+# third they mislead. They sit in their own repository, cloned here, and the framework
+# runs whole without them. The leading slash: without it, the pattern would also
+# swallow `template/records/`, and a new file put there would never enter git.
+/records/
+
+# The machine's state and the personal rules loaded from it.
+/STATE.md
+/CLAUDE.local.md
+
+# Antigravity's local files, written by bin/antigravity.sh for a single machine.
+/.agents/rules/framework-[0-9][0-9].md
+
+# The application's local settings, written per machine.
+.claude/settings.local.json
+
+# Bytecode left behind by `python3` when a tool in `bin/` is imported as a module, not
+# run as a script.
+__pycache__/
+
+# View files left behind by file systems.
+.directory
+.DS_Store
+Thumbs.db
