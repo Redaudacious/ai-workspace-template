@@ -1,0 +1,12 @@
+# The two verifiers that need nothing from the machine: the tests of the tools and the
+# documentation check. `check-lock.sh` and `check-maps.sh` are not here: the first reads
+# the plugins cloned under `~/.claude/`, and the map has a row that calls it.
+name: verify
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./test
+      - run: python3 bin/check-docs.py .

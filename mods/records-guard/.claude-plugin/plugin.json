@@ -1,0 +1,1 @@
+{ "name": "records-guard", "version": "0.1.0", "description": "Refuses a whole-file write that leaves a records index or the memory with less than half of its bytes" }

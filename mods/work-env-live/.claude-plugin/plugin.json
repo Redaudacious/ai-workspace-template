@@ -1,0 +1,1 @@
+{ "name": "work-env-live", "version": "0.1.0", "description": "Session usage, limits, active sessions and subagents, and a warning for an expired cache", "types": "./types/index.d.ts" }

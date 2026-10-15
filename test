@@ -1,0 +1,98 @@
+#!/bin/bash
+# test — the collector of the project's tests. One command for everything.
+#
+# ⚠ IT HAS NO SKIP LIST. A hand-written list once held tools as tests and let a test
+#   that sent real packets onto the network run, under a comment that said it never
+#   runs. `tests/` holds only tests, and a test that cannot run here defends itself,
+#   with code 77.
+#
+# ⚠ THE ROOT IS NOT ASKED FROM GIT. A project without its own repository gets from git
+#   the root of the workspace — a test would look for its tool in another project, not
+#   find it, and say nothing. The root is the folder this file sits in.
+#
+# ⚠ IT DOES NOT LOOK AT THE EXTENSION. It runs any executable file in `tests/`; each
+#   one's shebang says how it is run. That is how bash, Python and Lua come in without
+#   the collector knowing they exist; a `*.sh` pattern once left two Python tests unrun.
+#
+# ⚠ THE VERDICT IS THE EXIT CODE, not the last line printed. A test that dies halfway
+#   leaves behind a line that looks like a pass; the code does not lie the same way.
+set -u
+
+ROOT=$(cd "$(dirname "$0")" && pwd)
+export TESTS_ROOT="$ROOT"
+cd "$ROOT" || exit 1
+
+LIMIT=${LIMIT:-600}
+ME=$(basename "$0")
+
+passed=0; failed=0; skipped=0; failed_names=()
+
+run_test() {
+    local f=$1 n out code last
+    n=${f#"$ROOT"/}
+    # ⚠ WITHOUT A SHEBANG, IT IS NOT RUN. An executable file without a shebang is taken by
+    #   the kernel and given to `/bin/sh`, which reads Python as shell and BLOCKS reading
+    #   its input — it does not crash, it waits, until `timeout` cuts it.
+    if ! head -c2 "$f" | grep -q '#!'; then
+        failed=$((failed+1)); failed_names+=("$n")
+        printf '  ✗ %-40s no shebang: nobody would know how to run it\n' "$n"
+        return
+    fi
+    out=$(timeout "$LIMIT" "$f" 2>&1); code=$?
+    last=$(printf '%s\n' "$out" | grep -E 'passed|failed|skipped|✓|✗' | tail -1)
+    case $code in
+        0)  passed=$((passed+1));   printf '  ✓ %-40s %s\n' "$n" "${last# }" ;;
+        77) skipped=$((skipped+1)); printf '  ○ %-40s %s\n' "$n" "${last# }" ;;
+        *)  failed=$((failed+1)); failed_names+=("$n")
+            printf '  ✗ %-40s code %s  %s\n' "$n" "$code" "${last# }" ;;
+    esac
+}
+
+# ── each domain's tests ──────────────────────────────────────────
+# ⚠ The self-call guard stays, although the file no longer sits among the tests: a
+#   move back would start collectors in a chain, and the suite would only seem "slow".
+for f in "$ROOT"/*/tests/* "$ROOT"/tests/*; do
+    [ -f "$f" ] && [ -x "$f" ] || continue
+    [ "$(basename "$f")" = "$ME" ] && continue
+    run_test "$f"
+done
+
+# ── the Go modules ───────────────────────────────────────────────
+# ⚠ IT DOES NOT DESCEND INTO A PROJECT THAT HAS ITS OWN COLLECTOR. The workspace root
+#   holds `projects/`, and a blind search for `go.mod` would have run from there the
+#   suites of every project in the house — that is, the environment's collector would
+#   have measured something other than the environment. The rule does not name
+#   `projects/`: a folder that has an executable `test` runs itself, so it is not our
+#   business.
+find_modules() {
+    find "$ROOT" \
+        -name .git -prune -o \
+        -path "$ROOT" -o \
+        -type d -exec test -x '{}/test' \; -prune -o \
+        -name go.mod -print | sort
+}
+
+# ⚠ A missing `go` is counted SKIPPED, not failed: a suite that goes red because of the
+#   machine it runs on is a suite nobody reads any more.
+while IFS= read -r m; do
+    d=$(dirname "$m"); n=${d#"$ROOT"/}
+    if ! command -v go >/dev/null 2>&1; then
+        skipped=$((skipped+1)); printf '  ○ %-40s skipped: `go` is not installed\n' "$n (go test)"
+        continue
+    fi
+    out=$(cd "$d" && timeout "$LIMIT" go test -count=1 ./... 2>&1); code=$?
+    if [ "$code" = 0 ]; then
+        passed=$((passed+1))
+        printf '  ✓ %-40s %s\n' "$n (go test)" "$(printf '%s\n' "$out" | tail -1)"
+    else
+        failed=$((failed+1)); failed_names+=("$n (go test)")
+        printf '  ✗ %-40s code %s\n' "$n (go test)" "$code"
+        printf '%s\n' "$out" | grep -E '^(---|[[:space:]]+---) FAIL|^FAIL' | head -5 | sed 's/^/      /'
+    fi
+done < <(find_modules)
+
+echo
+echo "  $passed passed, $failed failed, $skipped skipped"
+[ "$skipped" = 0 ] || echo "  skipped: each with its reason, above, marked with ○"
+[ "$failed" = 0 ] || { echo "  failed: ${failed_names[*]}"; exit 1; }
+exit 0
